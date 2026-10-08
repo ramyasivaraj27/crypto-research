@@ -17,10 +17,14 @@ class SettingsScreen extends StatefulWidget {
 
 class _SettingsScreenState extends State<SettingsScreen> {
   String _note = '';
+  bool _noteOk = false;
 
-  void _say(String s) {
+  void _say(String s, {bool ok = false}) {
     if (!mounted) return;
-    setState(() => _note = s);
+    setState(() {
+      _note = s;
+      _noteOk = ok;
+    });
   }
 
   @override
@@ -37,7 +41,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 child: Card(
                   child: Padding(
                     padding: const EdgeInsets.all(14),
-                    child: Text(_note, style: const TextStyle(color: AppColors.muted)),
+                    child: Text(_note,
+                        style: TextStyle(
+                            color: _noteOk ? AppColors.gain : AppColors.muted)),
                   ),
                 ),
               ),
@@ -49,9 +55,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 _say('Syncing…');
                 try {
                   final res = await context.read<ApiClient>().refreshCoins();
-                  _say(res['synced'] == true
-                      ? 'Live sync complete.'
-                      : 'Sync skipped (throttled) — showing stored data.');
+                  _say(
+                    res['synced'] == true
+                        ? 'Live sync complete.'
+                        : 'Sync skipped (throttled) — showing stored data.',
+                    ok: res['synced'] == true,
+                  );
                 } catch (e) {
                   _say('Sync failed: $e');
                 }

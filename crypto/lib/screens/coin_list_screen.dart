@@ -33,7 +33,7 @@ class CoinListScreen extends StatelessWidget {
     return ListView(
       children: [
         _header(m),
-        const SectionTitle(text: 'Trending Coins'),
+        const SectionTitle(text: 'Trending Coins', top: 4),
         _trending(m),
         const SizedBox(height: 8),
         const MarketOverviewCard(),
@@ -66,15 +66,8 @@ class CoinListScreen extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        mainAxisAlignment: MainAxisAlignment.end,
         children: [
-          const Row(
-            children: [
-              Text('Powered by ', style: TextStyle(color: AppColors.muted, fontSize: 13)),
-              Icon(Icons.currency_bitcoin, size: 18, color: AppColors.muted),
-              Text(' CoinGecko', style: TextStyle(fontSize: 13)),
-            ],
-          ),
           Column(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [

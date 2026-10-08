@@ -42,14 +42,14 @@ class _LoginScreenState extends State<LoginScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Container(
-                  width: 72,
-                  height: 72,
-                  decoration: const BoxDecoration(
-                    color: Color(0xFFF7931A),
-                    shape: BoxShape.circle,
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(20),
+                  child: Image.asset(
+                    'assets/app_logo.png',
+                    height: 150,
+                    width: double.infinity,
+                    fit: BoxFit.cover,
                   ),
-                  child: const Icon(Icons.currency_bitcoin, color: Colors.white, size: 44),
                 ),
                 const SizedBox(height: 20),
                 Text(

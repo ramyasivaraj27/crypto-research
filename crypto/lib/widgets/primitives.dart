@@ -44,12 +44,13 @@ class RankBadge extends StatelessWidget {
 /// Section heading, e.g. "Trending Coins".
 class SectionTitle extends StatelessWidget {
   final String text;
-  const SectionTitle({super.key, required this.text});
+  final double top;
+  const SectionTitle({super.key, required this.text, this.top = 20});
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 20, 16, 12),
+      padding: EdgeInsets.fromLTRB(16, top, 16, 12),
       child: Align(
         alignment: Alignment.centerLeft,
         child: Text(text, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w600)),
