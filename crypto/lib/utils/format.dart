@@ -24,8 +24,13 @@ String fmtSupply(double? v) {
   return NumberFormat.compact().format(v);
 }
 
-String fmtAgo(DateTime? t) {
-  if (t == null) return 'unknown time';
+String fmtTime(DateTime t) {
+  final hh = t.hour.toString().padLeft(2, '0');
+  final mm = t.minute.toString().padLeft(2, '0');
+  return '$hh:$mm';
+}
+
+String fmtAgo(DateTime? t) {  if (t == null) return 'unknown time';
   final d = DateTime.now().difference(t);
   if (d.inMinutes < 1) return 'just now';
   if (d.inMinutes < 60) return '${d.inMinutes}m ago';

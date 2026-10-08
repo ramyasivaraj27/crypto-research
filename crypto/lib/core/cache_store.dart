@@ -18,8 +18,7 @@ class CacheStore {
     await prefs.setString(_key(key), jsonEncode({'saved_at': DateTime.now().toIso8601String(), 'data': value}));
   }
 
-  Future<({dynamic data, DateTime? savedAt})> load(String key) async {
-    final prefs = await SharedPreferences.getInstance();
+  Future<({dynamic data, DateTime? savedAt})> load(String key) async {    final prefs = await SharedPreferences.getInstance();
     final raw = prefs.getString(_key(key));
     if (raw == null) return (data: null, savedAt: null);
     try {
@@ -27,6 +26,14 @@ class CacheStore {
       return (data: map['data'], savedAt: DateTime.tryParse(map['saved_at']?.toString() ?? ''));
     } catch (_) {
       return (data: null, savedAt: null);
+    }
+  }
+
+  /// Wipes all cached market data (used by Settings).
+  Future<void> clear() async {
+    final prefs = await SharedPreferences.getInstance();
+    for (final k in prefs.getKeys().where((k) => k.startsWith(_prefix))) {
+      await prefs.remove(k);
     }
   }
 }
