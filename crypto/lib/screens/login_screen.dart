@@ -67,9 +67,14 @@ class _LoginScreenState extends State<LoginScreen> {
     final err = _register
         ? await auth.register(_user.text.trim(), _email.text.trim(), _pass.text)
         : await auth.login(_user.text.trim(), _pass.text);
+    if (!mounted) return;
     setState(() {
       _busy = false;
       _error = err;
     });
+    // When opened as a pushed route (e.g. from Settings), go back on success.
+    if (err == null && Navigator.of(context).canPop()) {
+      Navigator.of(context).pop();
+    }
   }
 }

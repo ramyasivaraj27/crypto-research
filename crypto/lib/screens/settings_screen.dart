@@ -5,6 +5,7 @@ import '../core/api_client.dart';
 import '../core/auth_store.dart';
 import '../core/cache_store.dart';
 import '../theme/app_theme.dart';
+import 'login_screen.dart';
 
 /// Settings tab: backend, data refresh, cache, account, about.
 class SettingsScreen extends StatefulWidget {
@@ -105,10 +106,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
             if (auth.isLoggedIn)
               _tile(
-                icon: Icons.logout,
-                title: 'Log out',
-                subtitle: 'Signed in - tap to sign out',
+                icon: Icons.person_outline,
+                title: 'Signed in as ${auth.user?['username'] ?? 'you'}',
+                subtitle: 'Tap to log out',
                 onTap: () => auth.logout(),
+              )
+            else
+              _tile(
+                icon: Icons.login,
+                title: 'Log in / Sign up',
+                subtitle: 'Needed for your watchlist',
+                onTap: () => Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => const LoginScreen()),
+                ),
               ),
             const Padding(
               padding: EdgeInsets.all(16),
