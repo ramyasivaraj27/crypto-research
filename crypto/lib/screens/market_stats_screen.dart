@@ -64,6 +64,8 @@ class _MarketStatsScreenState extends State<MarketStatsScreen> {
       appBar: widget.showBack ? AppBar(leading: const BackButton()) : null,
       body: SafeArea(
         child: RefreshIndicator(
+            color: AppColors.chartLine,
+            backgroundColor: AppColors.card,
           onRefresh: _load,
           child: _body(),
         ),

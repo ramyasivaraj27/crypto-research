@@ -67,6 +67,8 @@ class _CoinDetailScreenState extends State<CoinDetailScreen> {
     return Scaffold(
       body: SafeArea(
         child: RefreshIndicator(
+            color: AppColors.chartLine,
+            backgroundColor: AppColors.card,
           onRefresh: _load,
           child: ListView(
             children: [

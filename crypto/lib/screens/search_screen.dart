@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../core/api_client.dart';
 import '../core/cache_store.dart';
 import '../providers/market_provider.dart';
+import '../theme/app_theme.dart';
 import '../utils/format.dart';
 import '../widgets/coin_tile.dart';
 import '../widgets/state_views.dart';
@@ -62,6 +63,8 @@ class _SearchBody extends StatelessWidget {
         return const EmptyView(message: 'No coins match your search.');
       case LoadState.loaded:
         return RefreshIndicator(
+            color: AppColors.chartLine,
+            backgroundColor: AppColors.card,
           onRefresh: () => m.refresh(live: false),
           child: ListView(
             children: [

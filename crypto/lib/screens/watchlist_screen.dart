@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../core/auth_store.dart';
 import '../providers/watchlist_provider.dart';
+import '../theme/app_theme.dart';
 import '../utils/format.dart';
 import '../widgets/coin_tile.dart';
 import '../widgets/state_views.dart';
@@ -37,6 +38,8 @@ class _WatchlistScreenState extends State<WatchlistScreen> {
             return const EmptyView(message: 'No starred coins yet.\nStar a coin from the Coins tab.');
           }
           return RefreshIndicator(
+            color: AppColors.chartLine,
+            backgroundColor: AppColors.card,
             onRefresh: w.refresh,
             child: ListView(
               children: [

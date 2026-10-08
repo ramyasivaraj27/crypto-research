@@ -41,6 +41,9 @@ ThemeData buildDarkTheme() {
       hintStyle: const TextStyle(color: AppColors.muted),
     ),
     dividerTheme: const DividerThemeData(color: Color(0xFF3A3A3F), thickness: 1),
+    progressIndicatorTheme: const ProgressIndicatorThemeData(
+      color: AppColors.chartLine,
+    ),
     textTheme: base.textTheme.apply(
       displayColor: Colors.white,
       bodyColor: Colors.white,

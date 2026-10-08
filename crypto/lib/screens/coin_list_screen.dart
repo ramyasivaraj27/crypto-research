@@ -20,6 +20,8 @@ class CoinListScreen extends StatelessWidget {
       body: SafeArea(
         child: Consumer<MarketProvider>(
           builder: (_, m, __) => RefreshIndicator(
+            color: AppColors.chartLine,
+            backgroundColor: AppColors.card,
             onRefresh: () => m.refresh(live: true),
             child: _scroll(m),
           ),

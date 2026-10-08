@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../core/auth_store.dart';
+import '../theme/app_theme.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -18,41 +19,122 @@ class _LoginScreenState extends State<LoginScreen> {
   String? _error;
 
   @override
+  void dispose() {
+    _user.dispose();
+    _email.dispose();
+    _pass.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final canPop = Navigator.of(context).canPop();
     return Scaffold(
-      appBar: AppBar(title: Text(_register ? 'Sign up' : 'Log in')),
-      body: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          children: [
-            const Text('Log in to sync your watchlist across devices.\nMarket data works without an account.'),
-            const SizedBox(height: 16),
-            TextField(controller: _user, decoration: const InputDecoration(labelText: 'Username', border: OutlineInputBorder())),
-            const SizedBox(height: 12),
-            if (_register) ...[
-              TextField(controller: _email, decoration: const InputDecoration(labelText: 'Email', border: OutlineInputBorder())),
-              const SizedBox(height: 12),
-            ],
-            TextField(controller: _pass, obscureText: true, decoration: const InputDecoration(labelText: 'Password', border: OutlineInputBorder())),
-            if (_error != null) ...[
-              const SizedBox(height: 12),
-              Text(_error!, style: const TextStyle(color: Colors.red)),
-            ],
-            const SizedBox(height: 16),
-            _busy
-                ? const CircularProgressIndicator()
-                : FilledButton(
-                    onPressed: _submit,
-                    child: Text(_register ? 'Create account' : 'Log in'),
+      appBar: AppBar(
+        leading: canPop ? const BackButton() : null,
+        automaticallyImplyLeading: canPop,
+      ),
+      body: SafeArea(
+        child: Center(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(horizontal: 24),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Container(
+                  width: 72,
+                  height: 72,
+                  decoration: const BoxDecoration(
+                    color: Color(0xFFF7931A),
+                    shape: BoxShape.circle,
                   ),
-            TextButton(
-              onPressed: () => setState(() {
-                _register = !_register;
-                _error = null;
-              }),
-              child: Text(_register ? 'Have an account? Log in' : 'New here? Create account'),
+                  child: const Icon(Icons.currency_bitcoin, color: Colors.white, size: 44),
+                ),
+                const SizedBox(height: 20),
+                Text(
+                  _register ? 'Create account' : 'Welcome back',
+                  style: const TextStyle(fontSize: 26, fontWeight: FontWeight.w600),
+                ),
+                const SizedBox(height: 6),
+                const Text(
+                  'Log in to sync your watchlist across devices.\nMarket data works without an account.',
+                  style: TextStyle(color: AppColors.muted, fontSize: 14),
+                ),
+                const SizedBox(height: 24),
+                TextField(
+                  controller: _user,
+                  textInputAction: TextInputAction.next,
+                  decoration: const InputDecoration(
+                    labelText: 'Username',
+                    prefixIcon: Icon(Icons.person_outline),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                if (_register) ...[
+                  TextField(
+                    controller: _email,
+                    keyboardType: TextInputType.emailAddress,
+                    textInputAction: TextInputAction.next,
+                    decoration: const InputDecoration(
+                      labelText: 'Email',
+                      prefixIcon: Icon(Icons.email_outlined),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                ],
+                TextField(
+                  controller: _pass,
+                  obscureText: true,
+                  textInputAction: TextInputAction.done,
+                  onSubmitted: (_) => _submit(),
+                  decoration: const InputDecoration(
+                    labelText: 'Password (min 8 characters)',
+                    prefixIcon: Icon(Icons.lock_outline),
+                  ),
+                ),
+                if (_error != null) ...[
+                  const SizedBox(height: 12),
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: AppColors.loss.withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Text(_error!, style: const TextStyle(color: AppColors.loss)),
+                  ),
+                ],
+                const SizedBox(height: 20),
+                _busy
+                    ? const Center(child: CircularProgressIndicator())
+                    : FilledButton(
+                        style: FilledButton.styleFrom(
+                          backgroundColor: AppColors.gain,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                        ),
+                        onPressed: _submit,
+                        child: Text(
+                          _register ? 'Create account' : 'Log in',
+                          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                        ),
+                      ),
+                const SizedBox(height: 8),
+                TextButton(
+                  onPressed: () => setState(() {
+                    _register = !_register;
+                    _error = null;
+                  }),
+                  child: Text(
+                    _register ? 'Have an account? Log in' : "New here? Create account",
+                    style: const TextStyle(color: AppColors.muted),
+                  ),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );
