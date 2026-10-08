@@ -1,30 +1,37 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
-import 'package:flutter/material.dart';
+import 'package:crypto_research/models/market.dart';
+import 'package:crypto_research/utils/format.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:crypto_research/main.dart';
-
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+  test('Coin parses market fields', () {
+    final coin = Coin.fromJson({
+      'id': 1,
+      'symbol': 'BTC',
+      'name': 'Bitcoin',
+      'image_url': '',
+      'current_price_usd': '67000.12345678',
+      'price_change_24h_pct': '2.5',
+      'volume_24h_usd': '35000000000',
+      'market_cap_usd': '1320000000000',
+      'circulating_supply': '19700000',
+      'total_supply': '21000000',
+      'is_stale': false,
+    });
+    expect(coin.symbol, 'BTC');
+    expect(coin.price, 67000.12345678);
+    expect(fmtPrice(coin.price), contains('67,000'));
+    expect(fmtPct(coin.change24h), '+2.50%');
+  });
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+  test('Coin handles null market data', () {
+    final coin = Coin.fromJson({'id': 2, 'symbol': 'NEW', 'name': 'New Coin'});
+    expect(coin.price, isNull);
+    expect(fmtPrice(coin.price), '—');
+  });
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
-
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+  test('PricePoint parses chart data', () {
+    final p = PricePoint.fromJson({'t': 1700000000000, 'price': '67000.5'});
+    expect(p.price, 67000.5);
+    expect(p.t.millisecondsSinceEpoch, 1700000000000);
   });
 }
