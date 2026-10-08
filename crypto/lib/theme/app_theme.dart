@@ -36,9 +36,32 @@ ThemeData buildDarkTheme() {
     inputDecorationTheme: InputDecorationTheme(
       filled: true,
       fillColor: AppColors.card,
-      border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
-      prefixIconColor: AppColors.muted,
       hintStyle: const TextStyle(color: AppColors.muted),
+      labelStyle: const TextStyle(color: AppColors.muted),
+      floatingLabelStyle: const TextStyle(color: AppColors.chartLine),
+      prefixIconColor: AppColors.muted,
+      suffixIconColor: AppColors.muted,
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(16),
+        borderSide: const BorderSide(color: AppColors.cardPressed),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(16),
+        borderSide: const BorderSide(color: AppColors.chartLine, width: 1.5),
+      ),
+      errorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(16),
+        borderSide: const BorderSide(color: AppColors.loss),
+      ),
+      focusedErrorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(16),
+        borderSide: const BorderSide(color: AppColors.loss, width: 1.5),
+      ),
+    ),
+    textSelectionTheme: const TextSelectionThemeData(
+      cursorColor: AppColors.chartLine,
+      selectionColor: Color(0x667DFF7A),
+      selectionHandleColor: AppColors.chartLine,
     ),
     dividerTheme: const DividerThemeData(color: Color(0xFF3A3A3F), thickness: 1),
     progressIndicatorTheme: const ProgressIndicatorThemeData(
