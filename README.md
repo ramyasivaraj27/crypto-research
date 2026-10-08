@@ -1,16 +1,19 @@
-# crypto_research
+# Crypto Research — Monorepo
 
-A new Flutter project.
+Full-stack codebase for crypto research: Flutter frontend + Django backend.
 
-## Getting Started
+## Monorepo Structure
 
-This project is a starting point for a Flutter application.
+* `crypto/` — Flutter app (see `crypto/README.md`)
+* `crypto-api/` — Django backend (see `crypto-api/README.md`)
+* `docs/` — shared docs (setup, architecture, ERD)
+* `scripts/` — standalone prototypes
 
-A few resources to get you started if this is your first Flutter project:
+## Documentation Index
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+| Doc | Path |
+|---|---|
+| Setup (backend: local / dev / prod) | [docs/SETUP.md](docs/SETUP.md) |
+| System architecture (backend) | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) |
+| Entity Relationship Diagram | [docs/ERD.md](docs/ERD.md) |
+| Frontend setup, run, build | [docs/FRONTEND.md](docs/FRONTEND.md) |

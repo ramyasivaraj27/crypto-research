@@ -1,0 +1,29 @@
+name: crypto-prod
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+      args:
+        ENVIRONMENT: production
+    volumes:
+      - staticfiles:/app/static
+      - media:/app/media
+    env_file: .env
+    environment:
+      - DJANGO_SETTINGS_MODULE=config.settings.production
+      - DJANGO_CONFIGURATION=Production
+    restart: unless-stopped
+    networks:
+      - crypto_network
+
+volumes:
+  staticfiles:
+  media:
+
+networks:
+  crypto_network:
+    driver: bridge
+    external: true

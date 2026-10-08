@@ -1,0 +1,61 @@
+name: crypto
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: dev
+      args:
+        ENVIRONMENT: dev
+        DJANGO_SETTINGS_MODULE: config.settings.develop
+        DJANGO_CONFIGURATION: Develop
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app:delegated
+      - staticfiles:/app/static
+    depends_on:
+      db:
+        condition: service_healthy
+    env_file: .env
+    environment:
+      - DJANGO_SETTINGS_MODULE=config.settings.develop
+      - DJANGO_CONFIGURATION=Develop
+    restart: unless-stopped
+    networks:
+      - crypto_network
+
+  db:
+    image: postgres:16
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_DB=crypto_local
+      - POSTGRES_PASSWORD=postgres
+    env_file: .env
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    command: >
+      postgres -c shared_preload_libraries=pg_trgm
+      -c max_connections=200
+      -c shared_buffers=256MB
+      -c effective_cache_size=1GB
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d crypto_local"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks:
+      - crypto_network
+
+volumes:
+  postgres_data:
+  staticfiles:
+
+networks:
+  crypto_network:
+    driver: bridge
