@@ -38,6 +38,7 @@ class _CryptoAppState extends State<CryptoApp> {
       providers: [
         ChangeNotifierProvider.value(value: auth),
         Provider.value(value: api),
+        Provider.value(value: cache),
         ChangeNotifierProvider(create: (_) => MarketProvider(api, cache)..refresh()),
         ChangeNotifierProvider(create: (_) => WatchlistProvider(api, auth, cache)),
       ],

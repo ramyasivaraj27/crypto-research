@@ -25,9 +25,14 @@ class WatchlistProvider extends ChangeNotifier {
     loading = true;
     error = '';
     notifyListeners();
+    List<Coin> parseItems(List raw) => [
+          for (final e in raw)
+            if (e is Map) Coin.tryFromJson(e['coin'])
+        ].whereType<Coin>().toList();
+
     try {
       final raw = await api.watchlistItems();
-      items = raw.cast<Map<String, dynamic>>().map((e) => Coin.fromJson((e['coin'] as Map).cast<String, dynamic>())).toList();
+      items = parseItems(raw);
       offline = false;
       await cache.save('watchlist', raw);
       savedAt = DateTime.now();
@@ -35,8 +40,7 @@ class WatchlistProvider extends ChangeNotifier {
       error = e.message;
       final hit = await cache.load('watchlist');
       if (hit.data != null) {
-        final raw = (hit.data as List).cast<Map<String, dynamic>>();
-        items = raw.map((e) => Coin.fromJson((e['coin'] as Map).cast<String, dynamic>())).toList();
+        items = parseItems(hit.data as List);
         savedAt = hit.savedAt;
         offline = true;
       }

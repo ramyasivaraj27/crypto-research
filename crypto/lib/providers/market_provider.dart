@@ -24,13 +24,22 @@ class MarketProvider extends ChangeNotifier {
   bool gainersOnly = false;
   Timer? _debounce;
 
-  Future<void> refresh() async {
+  /// Pull-to-refresh: best-effort live refresh first (throttled server-side,
+  /// failures ignored), then load the list (live or cached).
+  Future<void> refresh({bool live = true}) async {
     state = LoadState.loading;
     error = '';
     notifyListeners();
+    if (live) {
+      try {
+        await api.refreshCoins();
+      } catch (_) {
+        // Ignore: the list load below will fall back to cache.
+      }
+    }
     try {
       final raw = await api.coins(search: search, ordering: ordering);
-      var list = raw.cast<Map<String, dynamic>>().map(Coin.fromJson).toList();
+      var list = [for (final row in raw) Coin.tryFromJson(row)].whereType<Coin>().toList();
       if (gainersOnly) list = list.where((c) => (c.change24h ?? 0) > 0).toList();
       coins = list;
       offline = false;
@@ -41,8 +50,8 @@ class MarketProvider extends ChangeNotifier {
       error = e.message;
       final hit = await cache.load('coins:$search:$ordering:$gainersOnly');
       if (hit.data != null) {
-        final raw = (hit.data as List).cast<Map<String, dynamic>>();
-        var list = raw.map(Coin.fromJson).toList();
+        final raw = hit.data as List;
+        var list = [for (final row in raw) Coin.tryFromJson(row)].whereType<Coin>().toList();
         if (gainersOnly) list = list.where((c) => (c.change24h ?? 0) > 0).toList();
         coins = list;
         savedAt = hit.savedAt;

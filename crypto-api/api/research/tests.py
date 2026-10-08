@@ -146,3 +146,45 @@ def test_watchlist_toggle():
     res = client.post("/api/research/watchlists/toggle/", {"coin": coin.id}, format="json")
     assert res.status_code == 200
     assert res.data["starred"] is False
+
+
+@pytest.mark.django_db
+def test_refresh_endpoint_syncs_and_throttles():
+    from django.core.cache import cache
+
+    cache.clear()
+    client = _authed_client()
+    with patch("research.coingecko.fetch_markets", return_value=FAKE_MARKETS), patch(
+        "research.coingecko.fetch_global", return_value=FAKE_GLOBAL
+    ):
+        res = client.post("/api/research/coins/refresh/")
+    assert res.status_code == 200
+    assert res.data["synced"] is True
+    assert Coin.objects.filter(symbol="BTC").exists()
+
+    # Second call within throttle window: skipped, still 200
+    res = client.post("/api/research/coins/refresh/")
+    assert res.status_code == 200
+    assert res.data["synced"] is False
+    assert res.data["stale"] is True
+
+
+@pytest.mark.django_db
+def test_refresh_endpoint_survives_upstream_failure():
+    from research import coingecko
+
+    client = _authed_client()
+    with patch("research.coingecko.fetch_markets", side_effect=coingecko.CoinGeckoRateLimited("429")):
+        res = client.post("/api/research/coins/refresh/")
+    assert res.status_code == 200
+    assert res.data == {"synced": False, "stale": True}
+
+
+@pytest.mark.django_db
+def test_coin_list_does_not_hit_network():
+    Coin.objects.create(symbol="BTC", name="Bitcoin", market_cap_usd=Decimal("100"))
+    client = APIClient()  # public, no credentials
+    with patch("research.views.sync_markets") as mock_sync:
+        res = client.get("/api/research/coins/")
+    assert res.status_code == 200
+    mock_sync.assert_not_called()

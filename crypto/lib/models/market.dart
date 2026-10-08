@@ -27,19 +27,44 @@ class Coin {
 
   static double? _d(dynamic v) => v == null ? null : double.tryParse(v.toString());
 
-  factory Coin.fromJson(Map<String, dynamic> j) => Coin(
-        id: (j['id'] as num).toInt(),
-        symbol: (j['symbol'] ?? '').toString(),
-        name: (j['name'] ?? '').toString(),
-        imageUrl: (j['image_url'] ?? '').toString(),
-        price: _d(j['current_price_usd']),
-        change24h: _d(j['price_change_24h_pct']),
-        volume24h: _d(j['volume_24h_usd']),
-        marketCap: _d(j['market_cap_usd']),
-        circulating: _d(j['circulating_supply']),
-        total: _d(j['total_supply']),
-        isStale: j['is_stale'] == true,
-      );
+  static int? _id(dynamic v) {
+    if (v is num) return v.toInt();
+    return int.tryParse(v?.toString() ?? '');
+  }
+
+  /// Strict parse: throws [FormatException] on shape mismatch so callers
+  /// show error+retry instead of silent dashes.
+  factory Coin.fromJson(Map<String, dynamic> j) {
+    final id = _id(j['id']);
+    if (id == null) throw const FormatException('Coin is missing id');
+    if (j['symbol'] == null || j['name'] == null) {
+      throw const FormatException('Coin is missing symbol/name');
+    }
+    return Coin(
+      id: id,
+      symbol: j['symbol'].toString(),
+      name: j['name'].toString(),
+      imageUrl: (j['image_url'] ?? '').toString(),
+      price: _d(j['current_price_usd']),
+      change24h: _d(j['price_change_24h_pct']),
+      volume24h: _d(j['volume_24h_usd']),
+      marketCap: _d(j['market_cap_usd']),
+      circulating: _d(j['circulating_supply']),
+      total: _d(j['total_supply']),
+      isStale: j['is_stale'] == true,
+    );
+  }
+
+  /// Lenient row: returns null instead of throwing (one bad row must not
+  /// blank the whole list).
+  static Coin? tryFromJson(dynamic j) {
+    if (j is! Map) return null;
+    try {
+      return Coin.fromJson(j.cast<String, dynamic>());
+    } on FormatException {
+      return null;
+    }
+  }
 
   Map<String, dynamic> toJson() => {
         'id': id,
@@ -61,10 +86,23 @@ class PricePoint {
   final double price;
   PricePoint(this.t, this.price);
 
-  factory PricePoint.fromJson(Map<String, dynamic> j) => PricePoint(
-        DateTime.fromMillisecondsSinceEpoch((j['t'] as num).toInt()),
-        double.tryParse(j['price'].toString()) ?? 0,
-      );
+  factory PricePoint.fromJson(Map<String, dynamic> j) {
+    final t = j['t'];
+    if (t is! num) throw const FormatException('Price point is missing t');
+    return PricePoint(
+      DateTime.fromMillisecondsSinceEpoch(t.toInt()),
+      double.tryParse(j['price'].toString()) ?? 0,
+    );
+  }
+
+  static PricePoint? tryFromJson(dynamic j) {
+    if (j is! Map) return null;
+    try {
+      return PricePoint.fromJson(j.cast<String, dynamic>());
+    } on FormatException {
+      return null;
+    }
+  }
 }
 
 class MarketOverview {
@@ -78,13 +116,30 @@ class MarketOverview {
   static double? _d(dynamic v) => v == null ? null : double.tryParse(v.toString());
 
   factory MarketOverview.fromJson(Map<String, dynamic> j) {
-    final m = (j['market'] as Map).cast<String, dynamic>();
-    return MarketOverview(
-      totalMcap: _d(m['total_market_cap_usd']),
-      totalVolume: _d(m['total_volume_24h_usd']),
-      btcDom: _d(m['btc_dominance_pct']),
-      isStale: m['is_stale'] == true,
-      top: ((j['top_coins'] as List? ?? []).cast<Map<String, dynamic>>().map(Coin.fromJson).toList()),
+    final m = j['market'];
+    if (m is! Map) throw const FormatException('Market response has no market object');
+    final mc = m.cast<String, dynamic>();
+    final topRaw = j['top_coins'];
+    if (topRaw != null && topRaw is! List) {
+      throw const FormatException('Market response has malformed top_coins');
+    }
+    final top = <Coin>[];
+    for (final row in (topRaw as List? ?? [])) {
+      final coin = Coin.tryFromJson(row);
+      if (coin != null) top.add(coin);
+    }
+    final overview = MarketOverview(
+      totalMcap: _d(mc['total_market_cap_usd']),
+      totalVolume: _d(mc['total_volume_24h_usd']),
+      btcDom: _d(mc['btc_dominance_pct']),
+      isStale: mc['is_stale'] == true,
+      top: top,
     );
+    if (overview.isEmpty) throw const FormatException('Market response contains no usable data');
+    return overview;
   }
+
+  /// True when the payload parsed but carries nothing displayable —
+  /// callers must treat this as an error (retry), never as dashes.
+  bool get isEmpty => totalMcap == null && totalVolume == null && btcDom == null && top.isEmpty;
 }

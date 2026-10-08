@@ -26,13 +26,21 @@ class CoinViewSet(viewsets.ModelViewSet):
     ordering_fields = ["market_cap_usd", "current_price_usd", "price_change_24h_pct", "volume_24h_usd", "symbol"]
     ordering = ["-market_cap_usd"]
 
-    def list(self, request, *args, **kwargs):
-        # Best-effort refresh (throttled inside); never fail the list on upstream errors.
+    # NOTE: reads never touch the network. Data comes from the last
+    # `sync_crypto --live` run (or --seed). Use POST /coins/refresh/
+    # for an explicit throttled live refresh.
+    @action(detail=False, methods=["post"], url_path="refresh")
+    def refresh(self, request):
+        """Throttled live refresh from CoinGecko. Never fails the request:
+        on throttle/upstream failure returns the stored data state."""
         try:
-            sync_markets()
+            synced, stale = sync_markets()
         except Exception:
-            pass
-        return super().list(request, *args, **kwargs)
+            synced, stale = False, True
+        return Response(
+            {"synced": synced, "stale": stale},
+            status=status.HTTP_200_OK,
+        )
 
     @action(detail=True, methods=["get"])
     def history(self, request, pk=None):

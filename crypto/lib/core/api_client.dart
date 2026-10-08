@@ -115,4 +115,11 @@ class ApiClient {
     final data = await _post(Uri.parse('$baseUrl/api/research/watchlists/toggle/'), {'coin': coinId});
     return (data as Map).cast<String, dynamic>();
   }
+
+  /// Best-effort throttled live refresh. Returns {synced, stale}.
+  /// Throws [ApiException] when unreachable — callers must ignore it.
+  Future<Map<String, dynamic>> refreshCoins() async {
+    final data = await _post(Uri.parse('$baseUrl/api/research/coins/refresh/'), {});
+    return (data as Map).cast<String, dynamic>();
+  }
 }

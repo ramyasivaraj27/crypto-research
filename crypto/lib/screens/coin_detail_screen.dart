@@ -39,14 +39,14 @@ class _CoinDetailScreenState extends State<CoinDetailScreen> {
     });
     try {
       final raw = await api.history(widget.coin.id, days: days);
-      points = raw.cast<Map<String, dynamic>>().map(PricePoint.fromJson).toList();
+      points = [for (final row in raw) PricePoint.tryFromJson(row)].whereType<PricePoint>().toList();
       offline = false;
       await cache.save('history:${widget.coin.id}:$days', raw);
     } on ApiException catch (e) {
       error = e.message;
       final hit = await cache.load('history:${widget.coin.id}:$days');
       if (hit.data != null) {
-        points = (hit.data as List).cast<Map<String, dynamic>>().map(PricePoint.fromJson).toList();
+        points = [for (final row in (hit.data as List)) PricePoint.tryFromJson(row)].whereType<PricePoint>().toList();
         offline = true;
       }
     }
