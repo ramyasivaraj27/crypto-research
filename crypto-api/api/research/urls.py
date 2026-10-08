@@ -1,3 +1,4 @@
+from django.urls import path
 from rest_framework.routers import DefaultRouter
 
 from .views import (
@@ -6,6 +7,7 @@ from .views import (
     ResearchNoteViewSet,
     WatchlistItemViewSet,
     WatchlistViewSet,
+    market_overview,
 )
 
 router = DefaultRouter()
@@ -15,4 +17,6 @@ router.register("watchlist-items", WatchlistItemViewSet, basename="watchlist-ite
 router.register("notes", ResearchNoteViewSet, basename="note")
 router.register("prices", PriceSnapshotViewSet, basename="price")
 
-urlpatterns = router.urls
+urlpatterns = [
+    path("market/", market_overview, name="market-overview"),
+] + router.urls

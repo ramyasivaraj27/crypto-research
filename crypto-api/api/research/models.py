@@ -6,6 +6,15 @@ class Coin(models.Model):
     symbol = models.CharField(max_length=20, unique=True, db_index=True)
     name = models.CharField(max_length=100)
     coingecko_id = models.CharField(max_length=100, blank=True, default="")
+    image_url = models.URLField(blank=True, default="")
+    # Live market data (synced from CoinGecko, nullable until first sync)
+    current_price_usd = models.DecimalField(max_digits=20, decimal_places=8, null=True, blank=True)
+    price_change_24h_pct = models.DecimalField(max_digits=10, decimal_places=4, null=True, blank=True)
+    volume_24h_usd = models.DecimalField(max_digits=24, decimal_places=2, null=True, blank=True)
+    market_cap_usd = models.DecimalField(max_digits=24, decimal_places=2, null=True, blank=True)
+    circulating_supply = models.DecimalField(max_digits=24, decimal_places=2, null=True, blank=True)
+    total_supply = models.DecimalField(max_digits=24, decimal_places=2, null=True, blank=True)
+    last_synced_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -35,6 +44,7 @@ class WatchlistItem(models.Model):
 
     class Meta:
         unique_together = [("watchlist", "coin")]
+        ordering = ["-added_at"]
 
 
 class ResearchNote(models.Model):
@@ -60,6 +70,7 @@ class PriceSnapshot(models.Model):
     coin = models.ForeignKey(Coin, on_delete=models.CASCADE, related_name="price_snapshots")
     price_usd = models.DecimalField(max_digits=20, decimal_places=8)
     market_cap = models.DecimalField(max_digits=24, decimal_places=2, null=True, blank=True)
+    volume_24h_usd = models.DecimalField(max_digits=24, decimal_places=2, null=True, blank=True)
     recorded_at = models.DateTimeField(db_index=True)
 
     class Meta:
@@ -67,3 +78,15 @@ class PriceSnapshot(models.Model):
         indexes = [
             models.Index(fields=["coin", "-recorded_at"]),
         ]
+
+
+class MarketSnapshot(models.Model):
+    """Global market totals (from CoinGecko /global). One row per sync."""
+
+    total_market_cap_usd = models.DecimalField(max_digits=24, decimal_places=2, null=True, blank=True)
+    total_volume_24h_usd = models.DecimalField(max_digits=24, decimal_places=2, null=True, blank=True)
+    btc_dominance_pct = models.DecimalField(max_digits=7, decimal_places=3, null=True, blank=True)
+    recorded_at = models.DateTimeField(auto_now_add=True, db_index=True)
+
+    class Meta:
+        ordering = ["-recorded_at"]

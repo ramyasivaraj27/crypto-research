@@ -160,6 +160,13 @@ class Common(Configuration):
     CSRF_TRUSTED_ORIGINS = ["http://localhost:80", "http://localhost:8000", FRONTEND_SITE_URL]
     FRONTEND_LOGIN_URL = os.getenv("FRONTEND_LOGIN_URL", "http://localhost:3000/login")
 
+    # CoinGecko (keyless; optional demo-key passthrough + throttle/cache tuning)
+    COINGECKO_BASE_URL = os.getenv("COINGECKO_BASE_URL", "https://api.coingecko.com/api/v3")
+    COINGECKO_API_KEY = os.getenv("COINGECKO_API_KEY", "")
+    COINGECKO_TIMEOUT = int(os.getenv("COINGECKO_TIMEOUT", "10"))
+    CRYPTO_SYNC_THROTTLE_SECONDS = int(os.getenv("CRYPTO_SYNC_THROTTLE_SECONDS", "300"))
+    CRYPTO_CACHE_TTL = int(os.getenv("CRYPTO_CACHE_TTL", "300"))
+
     USE_X_FORWARDED_HOST = True
     USE_X_FORWARDED_PORT = True
     SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")

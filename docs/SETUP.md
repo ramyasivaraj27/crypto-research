@@ -16,6 +16,26 @@ docker compose -f crypto-api/docker-compose-local.yml exec api pytest
 
 API: `http://localhost:8000/api/health/`, `/api/users/`, `/api/research/`.
 
+## Market data (CoinGecko, keyless)
+
+```bash
+# Offline seed (deterministic, 10 coins + 30d history) — good for first run
+docker compose -f crypto-api/docker-compose-local.yml exec api python manage.py sync_crypto --seed
+# Live data (CoinGecko free API, throttled to 1 sync / 5 min)
+docker compose -f crypto-api/docker-compose-local.yml exec api python manage.py sync_crypto --live
+```
+
+Optional: set `COINGECKO_API_KEY` in `.env` to send the demo-key header (slightly higher quota). Not required.
+
+## Flutter app
+
+```bash
+cd crypto
+fvm flutter pub get
+# Point at the local backend (default is http://localhost:8000; required for Android emulator)
+fvm flutter run --dart-define=API_BASE_URL=http://localhost:8000
+```
+
 ## Dev / Prod
 
 Dev and prod differ only by compose file + `.env`:
