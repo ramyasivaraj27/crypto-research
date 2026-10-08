@@ -60,7 +60,40 @@ class _SettingsScreenState extends State<SettingsScreen> {
               title: 'Clear offline cache',
               subtitle: 'Remove all saved market data on this device',
               onTap: () async {
-                await context.read<CacheStore>().clear();
+                final cache = context.read<CacheStore>();
+                final confirmed = await showDialog<bool>(
+                  context: context,
+                  builder: (ctx) => AlertDialog(
+                    backgroundColor: AppColors.card,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                    title: const Text('Clear offline cache?',
+                        style: TextStyle(fontWeight: FontWeight.w600)),
+                    content: const Text(
+                      'This removes all saved market data on this device. '
+                      'The app will need the backend again to show data.',
+                      style: TextStyle(color: AppColors.muted),
+                    ),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.of(ctx).pop(false),
+                        child:
+                            const Text('Cancel', style: TextStyle(color: AppColors.muted)),
+                      ),
+                      FilledButton(
+                        style: FilledButton.styleFrom(
+                          backgroundColor: AppColors.loss,
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12)),
+                        ),
+                        onPressed: () => Navigator.of(ctx).pop(true),
+                        child: const Text('Clear'),
+                      ),
+                    ],
+                  ),
+                );
+                if (confirmed != true) return;
+                await cache.clear();
                 _say('Offline cache cleared.');
               },
             ),
@@ -74,7 +107,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               _tile(
                 icon: Icons.logout,
                 title: 'Log out',
-                subtitle: 'Signed in — tap to sign out',
+                subtitle: 'Signed in - tap to sign out',
                 onTap: () => auth.logout(),
               ),
             const Padding(
