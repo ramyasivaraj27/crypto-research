@@ -5,6 +5,7 @@ import '../core/api_client.dart';
 import '../core/auth_store.dart';
 import '../core/cache_store.dart';
 import '../theme/app_theme.dart';
+import '../widgets/primitives.dart';
 import 'login_screen.dart';
 
 /// Settings tab: backend, data refresh, cache, account, about.

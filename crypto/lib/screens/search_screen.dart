@@ -4,9 +4,8 @@ import 'package:provider/provider.dart';
 import '../core/api_client.dart';
 import '../core/cache_store.dart';
 import '../providers/market_provider.dart';
-import '../theme/app_theme.dart';
-import '../utils/format.dart';
 import '../widgets/coin_tile.dart';
+import '../widgets/primitives.dart';
 import '../widgets/state_views.dart';
 
 /// Dedicated search tab with its own provider instance.
@@ -22,8 +21,21 @@ class SearchScreen extends StatelessWidget {
   }
 }
 
-class _SearchBody extends StatelessWidget {
+class _SearchBody extends StatefulWidget {
   const _SearchBody();
+
+  @override
+  State<_SearchBody> createState() => _SearchBodyState();
+}
+
+class _SearchBodyState extends State<_SearchBody> {
+  final _controller = TextEditingController();
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -34,12 +46,11 @@ class _SearchBody extends StatelessWidget {
             children: [
               Padding(
                 padding: const EdgeInsets.all(16),
-                child: TextField(
-                  autofocus: false,
-                  decoration: const InputDecoration(
-                    prefixIcon: Icon(Icons.search),
-                    hintText: 'Search coins',
-                  ),
+                child: AppTextField(
+                  controller: _controller,
+                  label: 'Search coins',
+                  icon: Icons.search,
+                  textInputAction: TextInputAction.search,
                   onChanged: m.onSearch,
                 ),
               ),
@@ -62,13 +73,11 @@ class _SearchBody extends StatelessWidget {
       case LoadState.empty:
         return const EmptyView(message: 'No coins match your search.');
       case LoadState.loaded:
-        return RefreshIndicator(
-            color: AppColors.chartLine,
-            backgroundColor: AppColors.card,
+        return AppRefreshIndicator(
           onRefresh: () => m.refresh(live: false),
           child: ListView(
             children: [
-              if (m.offline && m.savedAt != null) OfflineBadge(savedAgo: fmtAgo(m.savedAt)),
+              MaybeOfflineBadge(offline: m.offline, savedAt: m.savedAt),
               ...[for (var i = 0; i < m.coins.length; i++) CoinTile(coin: m.coins[i], rank: i + 1)],
               const SizedBox(height: 16),
             ],

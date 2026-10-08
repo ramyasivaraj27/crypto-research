@@ -5,6 +5,7 @@ import '../models/market.dart';
 import '../providers/market_provider.dart';
 import '../screens/coin_detail_screen.dart';
 import '../theme/app_theme.dart';
+import '../widgets/primitives.dart';
 import '../utils/format.dart';
 import '../widgets/coin_tile.dart';
 import '../widgets/market_overview_card.dart';
@@ -19,9 +20,7 @@ class CoinListScreen extends StatelessWidget {
     return Scaffold(
       body: SafeArea(
         child: Consumer<MarketProvider>(
-          builder: (_, m, __) => RefreshIndicator(
-            color: AppColors.chartLine,
-            backgroundColor: AppColors.card,
+          builder: (_, m, __) => AppRefreshIndicator(
             onRefresh: () => m.refresh(live: true),
             child: _scroll(m),
           ),
@@ -126,7 +125,7 @@ class CoinListScreen extends StatelessWidget {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  _avatar(coin, 34),
+                  CoinAvatar(imageUrl: coin.imageUrl, size: 34),
                   const SizedBox(height: 6),
                   Text(coin.name, maxLines: 1, overflow: TextOverflow.ellipsis,
                       style: const TextStyle(fontWeight: FontWeight.w500)),
@@ -141,23 +140,6 @@ class CoinListScreen extends StatelessWidget {
     });
   }
 
-  Widget _avatar(Coin coin, double size) {
-    if (coin.imageUrl.isNotEmpty) {
-      return ClipOval(
-        child: Image.network(coin.imageUrl, width: size, height: size,
-            errorBuilder: (_, __, ___) => _fallbackAvatar(size)),
-      );
-    }
-    return _fallbackAvatar(size);
-  }
-
-  Widget _fallbackAvatar(double size) => Container(
-        width: size,
-        height: size,
-        decoration: const BoxDecoration(color: Color(0xFFF7931A), shape: BoxShape.circle),
-        child: const Icon(Icons.currency_bitcoin, color: Colors.white),
-      );
-
   Widget _list(MarketProvider m) {
     switch (m.state) {
       case LoadState.loading:
@@ -171,7 +153,7 @@ class CoinListScreen extends StatelessWidget {
       case LoadState.loaded:
         return Column(
           children: [
-            if (m.offline && m.savedAt != null) OfflineBadge(savedAgo: fmtAgo(m.savedAt)),
+            MaybeOfflineBadge(offline: m.offline, savedAt: m.savedAt),
             ...[for (var i = 0; i < m.coins.length; i++) CoinTile(coin: m.coins[i], rank: i + 1)],
             const SizedBox(height: 16),
           ],

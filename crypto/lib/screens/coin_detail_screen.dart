@@ -6,6 +6,7 @@ import '../core/cache_store.dart';
 import '../models/market.dart';
 import '../providers/watchlist_provider.dart';
 import '../theme/app_theme.dart';
+import '../widgets/primitives.dart';
 import '../utils/format.dart';
 import '../widgets/price_chart.dart';
 import '../widgets/state_views.dart';
@@ -66,16 +67,14 @@ class _CoinDetailScreenState extends State<CoinDetailScreen> {
     final starred = context.select<WatchlistProvider, bool>((w) => w.starredIds.contains(c.id));
     return Scaffold(
       body: SafeArea(
-        child: RefreshIndicator(
-            color: AppColors.chartLine,
-            backgroundColor: AppColors.card,
+        child: AppRefreshIndicator(
           onRefresh: _load,
           child: ListView(
             children: [
               _topBar(starred),
               _header(c),
               _priceBlock(c),
-              if (offline) const OfflineBadge(savedAgo: 'last sync'),
+              MaybeOfflineBadge(offline: offline),
               if (loading)
                 const SizedBox(height: 240, child: Center(child: CircularProgressIndicator()))
               else if (error.isNotEmpty && points.isEmpty)
@@ -112,12 +111,7 @@ class _CoinDetailScreenState extends State<CoinDetailScreen> {
         padding: const EdgeInsets.symmetric(horizontal: 20),
         child: Row(
           children: [
-            ClipOval(
-              child: c.imageUrl.isNotEmpty
-                  ? Image.network(c.imageUrl, width: 52, height: 52,
-                      errorBuilder: (_, __, ___) => const _BigFallbackIcon())
-                  : const _BigFallbackIcon(),
-            ),
+            CoinAvatar(imageUrl: c.imageUrl, size: 52),
             const SizedBox(width: 12),
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -187,51 +181,12 @@ class _CoinDetailScreenState extends State<CoinDetailScreen> {
       hi = hi == null || p.price > hi ? p.price : hi;
       lo = lo == null || p.price < lo ? p.price : lo;
     }
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Card(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 6),
-          child: Column(
-            children: [
-              _row('Market Cap', fmtCompact(c.marketCap)),
-              _row('Trading Volume 24h', fmtCompact(c.volume24h)),
-              _row('Highest Price ($range)', hi == null ? '—' : fmtPrice(hi)),
-              _row('Lowest Price ($range)', lo == null ? '—' : fmtPrice(lo)),
-              _row('Available Supply', '${fmtSupply(c.circulating)} ${c.symbol}', last: true),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _row(String label, String value, {bool last = false}) => Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 12),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(label, style: const TextStyle(color: AppColors.muted, fontSize: 14)),
-                Text(value, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
-              ],
-            ),
-          ),
-          if (!last) const Divider(height: 1),
-        ],
-      );
-}
-
-class _BigFallbackIcon extends StatelessWidget {
-  const _BigFallbackIcon();
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 52,
-      height: 52,
-      decoration: const BoxDecoration(color: Color(0xFFF7931A), shape: BoxShape.circle),
-      child: const Icon(Icons.currency_bitcoin, color: Colors.white, size: 34),
-    );
+    return StatCard(rows: [
+      ('Market Cap', fmtCompact(c.marketCap)),
+      ('Trading Volume 24h', fmtCompact(c.volume24h)),
+      ('Highest Price ($range)', hi == null ? '—' : fmtPrice(hi)),
+      ('Lowest Price ($range)', lo == null ? '—' : fmtPrice(lo)),
+      ('Available Supply', '${fmtSupply(c.circulating)} ${c.symbol}'),
+    ]);
   }
 }

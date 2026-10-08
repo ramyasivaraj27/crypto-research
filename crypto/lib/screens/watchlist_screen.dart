@@ -3,9 +3,8 @@ import 'package:provider/provider.dart';
 
 import '../core/auth_store.dart';
 import '../providers/watchlist_provider.dart';
-import '../theme/app_theme.dart';
-import '../utils/format.dart';
 import '../widgets/coin_tile.dart';
+import '../widgets/primitives.dart';
 import '../widgets/state_views.dart';
 
 class WatchlistScreen extends StatefulWidget {
@@ -37,13 +36,11 @@ class _WatchlistScreenState extends State<WatchlistScreen> {
           if (w.items.isEmpty) {
             return const EmptyView(message: 'No starred coins yet.\nStar a coin from the Coins tab.');
           }
-          return RefreshIndicator(
-            color: AppColors.chartLine,
-            backgroundColor: AppColors.card,
+          return AppRefreshIndicator(
             onRefresh: w.refresh,
             child: ListView(
               children: [
-                if (w.offline && w.savedAt != null) OfflineBadge(savedAgo: fmtAgo(w.savedAt)),
+                MaybeOfflineBadge(offline: w.offline, savedAt: w.savedAt),
                 ...w.items.map((c) => CoinTile(coin: c)),
               ],
             ),

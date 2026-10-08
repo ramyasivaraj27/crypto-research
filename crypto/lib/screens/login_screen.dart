@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../core/auth_store.dart';
 import '../theme/app_theme.dart';
+import '../widgets/primitives.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -61,36 +62,28 @@ class _LoginScreenState extends State<LoginScreen> {
                   style: TextStyle(color: AppColors.muted, fontSize: 14),
                 ),
                 const SizedBox(height: 24),
-                TextField(
+                AppTextField(
                   controller: _user,
-                  textInputAction: TextInputAction.next,
-                  decoration: const InputDecoration(
-                    labelText: 'Username',
-                    prefixIcon: Icon(Icons.person_outline),
-                  ),
+                  label: 'Username',
+                  icon: Icons.person_outline,
                 ),
                 const SizedBox(height: 12),
                 if (_register) ...[
-                  TextField(
+                  AppTextField(
                     controller: _email,
+                    label: 'Email',
+                    icon: Icons.email_outlined,
                     keyboardType: TextInputType.emailAddress,
-                    textInputAction: TextInputAction.next,
-                    decoration: const InputDecoration(
-                      labelText: 'Email',
-                      prefixIcon: Icon(Icons.email_outlined),
-                    ),
                   ),
                   const SizedBox(height: 12),
                 ],
-                TextField(
+                AppTextField(
                   controller: _pass,
-                  obscureText: true,
+                  label: 'Password (min 8 characters)',
+                  icon: Icons.lock_outline,
+                  obscure: true,
                   textInputAction: TextInputAction.done,
                   onSubmitted: (_) => _submit(),
-                  decoration: const InputDecoration(
-                    labelText: 'Password (min 8 characters)',
-                    prefixIcon: Icon(Icons.lock_outline),
-                  ),
                 ),
                 if (_error != null) ...[
                   const SizedBox(height: 12),

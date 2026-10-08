@@ -63,18 +63,3 @@ class EmptyView extends StatelessWidget {
     );
   }
 }
-
-class OfflineBadge extends StatelessWidget {
-  final String savedAgo;
-  const OfflineBadge({super.key, required this.savedAgo});
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      color: const Color(0xFF4A3F1E),
-      padding: const EdgeInsets.symmetric(vertical: 6),
-      child: Text('Offline • saved $savedAgo',
-          textAlign: TextAlign.center, style: const TextStyle(fontSize: 12, color: Color(0xFFFFD54F))),
-    );
-  }
-}

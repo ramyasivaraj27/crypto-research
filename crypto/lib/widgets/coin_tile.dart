@@ -5,6 +5,7 @@ import '../models/market.dart';
 import '../providers/watchlist_provider.dart';
 import '../screens/coin_detail_screen.dart';
 import '../theme/app_theme.dart';
+import 'primitives.dart';
 import '../utils/format.dart';
 
 /// Rounded dark card row: icon, name, rank + symbol, price + change pill.
@@ -26,7 +27,7 @@ class CoinTile extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
             child: Row(
               children: [
-                _icon(),
+                CoinAvatar(imageUrl: coin.imageUrl),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Column(
@@ -64,29 +65,6 @@ class CoinTile extends StatelessWidget {
           ),
         ),
       ),
-    );
-  }
-
-  Widget _icon() {
-    if (coin.imageUrl.isNotEmpty) {
-      return ClipOval(
-        child: Image.network(coin.imageUrl, width: 44, height: 44,
-            errorBuilder: (_, __, ___) => const _FallbackIcon()),
-      );
-    }
-    return const _FallbackIcon();
-  }
-}
-
-class _FallbackIcon extends StatelessWidget {
-  const _FallbackIcon();
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 44,
-      height: 44,
-      decoration: const BoxDecoration(color: Color(0xFFF7931A), shape: BoxShape.circle),
-      child: const Icon(Icons.currency_bitcoin, color: Colors.white, size: 28),
     );
   }
 }
