@@ -1,0 +1,51 @@
+name: crypto
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+      args:
+        ENVIRONMENT: production
+    ports:
+      - "8000:8000"
+    volumes:
+      - staticfiles:/app/static
+      - media:/app/media
+    depends_on:
+      db:
+        condition: service_healthy
+    env_file: .env
+    environment:
+      - DJANGO_SETTINGS_MODULE=config.settings.production
+      - DJANGO_CONFIGURATION=Production
+    restart: unless-stopped
+    networks:
+      - crypto_network
+
+  db:
+    image: postgres:16
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    command: >
+      postgres -c shared_preload_libraries=pg_trgm
+      -c max_connections=200
+      -c shared_buffers=256MB
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - crypto_network
+
+volumes:
+  postgres_data:
+  staticfiles:
+  media:
+
+networks:
+  crypto_network:
+    driver: bridge
