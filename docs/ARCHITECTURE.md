@@ -1,4 +1,4 @@
-# Crypto API — System Architecture (Backend only)
+# Crypto API - System Architecture (Backend only)
 
 ## Overview
 
@@ -24,7 +24,7 @@ flowchart LR
 
 | Module | Responsibility |
 |---|---|
-| `users` | Custom User, Token register/login/logout/me, roles VIEWER/RESEARCHER/ADMIN |
+| `users` | Custom User, Token register/login/logout/me, 
 | `research` | Coin, Watchlist, ResearchNote, PriceSnapshot |
 | `core` | `health_check` |
 

@@ -1,4 +1,4 @@
-# Setup — Crypto API (Docker path)
+# Setup - Crypto API (Docker path)
 
 ## Prerequisites
 
@@ -19,7 +19,7 @@ API: `http://localhost:8000/api/health/`, `/api/users/`, `/api/research/`.
 ## Market data (CoinGecko, keyless)
 
 ```bash
-# Offline seed (deterministic, 10 coins + 30d history) — good for first run
+# Offline seed (deterministic, 10 coins + 30d history) - good for first run
 docker compose -f crypto-api/docker-compose-local.yml exec api python manage.py sync_crypto --seed
 # Live data (CoinGecko free API, throttled to 1 sync / 5 min)
 docker compose -f crypto-api/docker-compose-local.yml exec api python manage.py sync_crypto --live
