@@ -2,7 +2,7 @@ import 'package:built_value/built_value.dart';
 
 part 'app_state.g.dart';
 
-/// Global UI state (mirrors balm's AppState, scoped to tab index).
+/// Global UI state ( scoped to tab index).
 abstract class AppState implements Built<AppState, AppStateBuilder> {
   int get activeIndex;
 

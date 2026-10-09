@@ -6,7 +6,7 @@ import 'load_state.dart';
 
 part 'market_state.g.dart';
 
-/// Immutable state for the coin list / search (mirrors balm's PostState).
+/// Immutable state for the coin list / search
 abstract class MarketState implements Built<MarketState, MarketStateBuilder> {
   LoadState get status;
   BuiltList<Coin> get coins;

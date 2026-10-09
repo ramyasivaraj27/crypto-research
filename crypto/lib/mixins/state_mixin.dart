@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 /// Per-action loading flags + snack/error helpers for screens.
-/// Mirrors balm's `StateMixin` (views/widgets/mixins.dart).
 mixin StateMixin<T extends StatefulWidget> on State<T> {
   final Map<String, bool> _loading = {};
 

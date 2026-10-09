@@ -10,7 +10,7 @@ import '../view_model/auth_view_model.dart';
 import '../view_model/market_view_model.dart';
 import '../view_model/watchlist_view_model.dart';
 
-/// Typed provider accessors (mirrors balm's provider_utils):
+/// Typed provider accessors
 /// `read<XViewModel>()` for actions, `watch<XState>()` for rebuilds.
 extension ProviderUtils on BuildContext {
   AppViewModel get appViewModel => read<AppViewModel>();
