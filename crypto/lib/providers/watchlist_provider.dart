@@ -18,23 +18,34 @@ class WatchlistProvider extends ChangeNotifier {
   DateTime? savedAt;
   bool offline = false;
 
+  int page = 1;
+  int totalPages = 1;
+  bool loadingMore = false;
+  String pageError = '';
+  static const int pageSize = 20;
+
+  bool get hasNext => page < totalPages;
+
   Set<int> get starredIds => items.map((c) => c.id).toSet();
+
+  List<Coin> parseItems(List raw) => [
+        for (final e in raw)
+          if (e is Map) Coin.tryFromJson(e['coin'])
+      ].whereType<Coin>().toList();
 
   Future<void> refresh() async {
     if (!auth.isLoggedIn) return;
     loading = true;
     error = '';
+    pageError = '';
     notifyListeners();
-    List<Coin> parseItems(List raw) => [
-          for (final e in raw)
-            if (e is Map) Coin.tryFromJson(e['coin'])
-        ].whereType<Coin>().toList();
-
     try {
-      final raw = await api.watchlistItems();
-      items = parseItems(raw);
+      final res = await api.watchlistItems(page: 1, pageSize: pageSize);
+      items = parseItems(res.items);
+      page = res.page;
+      totalPages = res.totalPages;
       offline = false;
-      await cache.save('watchlist', raw);
+      await cache.save('watchlist', res.items);
       savedAt = DateTime.now();
     } on ApiException catch (e) {
       error = e.message;
@@ -43,9 +54,30 @@ class WatchlistProvider extends ChangeNotifier {
         items = parseItems(hit.data as List);
         savedAt = hit.savedAt;
         offline = true;
+        page = 1;
+        totalPages = 1;
       }
     }
     loading = false;
+    notifyListeners();
+  }
+
+  Future<void> loadMore() async {
+    if (loading || loadingMore || !hasNext || offline || !auth.isLoggedIn) return;
+    loadingMore = true;
+    pageError = '';
+    notifyListeners();
+    try {
+      final res = await api.watchlistItems(page: page + 1, pageSize: pageSize);
+      items = [...items, ...parseItems(res.items)];
+      page = res.page;
+      totalPages = res.totalPages;
+      await cache.save('watchlist', [for (final c in items) {'coin': c.toJson()}]);
+      savedAt = DateTime.now();
+    } on ApiException catch (e) {
+      pageError = e.message;
+    }
+    loadingMore = false;
     notifyListeners();
   }
 

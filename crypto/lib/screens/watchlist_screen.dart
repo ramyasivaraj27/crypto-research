@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../core/auth_store.dart';
 import '../providers/watchlist_provider.dart';
 import '../widgets/coin_tile.dart';
+import '../widgets/pagination.dart';
 import '../widgets/primitives.dart';
 import '../widgets/state_views.dart';
 
@@ -38,10 +39,18 @@ class _WatchlistScreenState extends State<WatchlistScreen> {
           }
           return AppRefreshIndicator(
             onRefresh: w.refresh,
-            child: ListView(
-              children: [
-                MaybeOfflineBadge(offline: w.offline, savedAt: w.savedAt),
-                ...w.items.map((c) => CoinTile(coin: c)),
+            child: PagedListView(
+              onLoadMore: w.loadMore,
+              itemCount: w.items.length,
+              itemBuilder: (_, i) => CoinTile(coin: w.items[i]),
+              prefix: [MaybeOfflineBadge(offline: w.offline, savedAt: w.savedAt)],
+              suffix: [
+                LoadMoreFooter(
+                  hasNext: w.hasNext,
+                  loadingMore: w.loadingMore,
+                  pageError: w.pageError,
+                  onRetry: w.loadMore,
+                ),
               ],
             ),
           );

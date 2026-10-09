@@ -3,6 +3,16 @@ import 'dart:convert';
 
 import 'package:http/http.dart' as http;
 
+/// One page of a paginated list endpoint.
+class PagedResult {
+  final List<dynamic> items;
+  final int page;
+  final int totalPages;
+  const PagedResult({required this.items, required this.page, required this.totalPages});
+
+  bool get hasNext => page < totalPages;
+}
+
 /// Single HTTP layer. Base URL from --dart-define=API_BASE_URL (default localhost).
 /// Throws [ApiException] with user-friendly messages for error states.
 class ApiException implements Exception {
@@ -63,14 +73,21 @@ class ApiClient {
     return jsonDecode(res.body);
   }
 
-  Future<List<dynamic>> coins({String search = '', String ordering = '-market_cap_usd', int page = 1}) async {
+  Future<PagedResult> coins(
+      {String search = '', String ordering = '-market_cap_usd', int page = 1, int pageSize = 20}) async {
     final uri = Uri.parse('$baseUrl/api/research/coins/').replace(queryParameters: {
       if (search.isNotEmpty) 'search': search,
       'ordering': ordering,
       'page': '$page',
+      'page_size': '$pageSize',
     });
     final data = await _get(uri);
-    return (data['results'] as List).cast<dynamic>();
+    final map = (data as Map).cast<String, dynamic>();
+    return PagedResult(
+      items: ((map['results'] as List?) ?? []).cast<dynamic>(),
+      page: (map['page'] as num?)?.toInt() ?? page,
+      totalPages: (map['total_pages'] as num?)?.toInt() ?? 1,
+    );
   }
 
   Future<Map<String, dynamic>> coinDetail(int id) async {
@@ -106,9 +123,18 @@ class ApiClient {
     } catch (_) {}
   }
 
-  Future<List<dynamic>> watchlistItems() async {
-    final data = await _get(Uri.parse('$baseUrl/api/research/watchlist-items/'));
-    return (data['results'] as List).cast<dynamic>();
+  Future<PagedResult> watchlistItems({int page = 1, int pageSize = 20}) async {
+    final uri = Uri.parse('$baseUrl/api/research/watchlist-items/').replace(queryParameters: {
+      'page': '$page',
+      'page_size': '$pageSize',
+    });
+    final data = await _get(uri);
+    final map = (data as Map).cast<String, dynamic>();
+    return PagedResult(
+      items: ((map['results'] as List?) ?? []).cast<dynamic>(),
+      page: (map['page'] as num?)?.toInt() ?? page,
+      totalPages: (map['total_pages'] as num?)?.toInt() ?? 1,
+    );
   }
 
   Future<Map<String, dynamic>> toggleStar(int coinId) async {

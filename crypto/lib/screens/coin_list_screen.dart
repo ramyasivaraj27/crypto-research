@@ -9,6 +9,7 @@ import '../widgets/primitives.dart';
 import '../utils/format.dart';
 import '../widgets/coin_tile.dart';
 import '../widgets/market_overview_card.dart';
+import '../widgets/pagination.dart';
 import '../widgets/state_views.dart';
 
 /// Home "Market" tab: header, trending cards, overview card, top coins.
@@ -30,8 +31,20 @@ class CoinListScreen extends StatelessWidget {
   }
 
   Widget _scroll(MarketProvider m) {
-    return ListView(
-      children: [
+    if (m.state == LoadState.loading || m.state == LoadState.idle) {
+      return const LoadingView();
+    }
+    if (m.state == LoadState.error) {
+      return ErrorView(message: m.error, onRetry: () => m.refresh(live: true));
+    }
+    if (m.state == LoadState.empty && m.coins.isEmpty) {
+      return const EmptyView(message: 'No coins found. Pull to retry.');
+    }
+    return PagedListView(
+      onLoadMore: m.loadMore,
+      itemCount: m.coins.length,
+      itemBuilder: (_, i) => CoinTile(coin: m.coins[i], rank: i + 1),
+      prefix: [
         _header(m),
         const SectionTitle(text: 'Trending Coins', top: 4),
         _trending(m),
@@ -57,7 +70,15 @@ class CoinListScreen extends StatelessWidget {
             ),
           ],
         ),
-        _list(m),
+        MaybeOfflineBadge(offline: m.offline, savedAt: m.savedAt),
+      ],
+      suffix: [
+        LoadMoreFooter(
+          hasNext: m.hasNext,
+          loadingMore: m.loadingMore,
+          pageError: m.pageError,
+          onRetry: m.loadMore,
+        ),
       ],
     );
   }
@@ -131,26 +152,5 @@ class CoinListScreen extends StatelessWidget {
         ),
       );
     });
-  }
-
-  Widget _list(MarketProvider m) {
-    switch (m.state) {
-      case LoadState.loading:
-      case LoadState.idle:
-        return const LoadingView();
-      case LoadState.error:
-        return SizedBox(height: 300, child: ErrorView(message: m.error, onRetry: () => m.refresh(live: true)));
-      case LoadState.empty:
-        return const SizedBox(
-            height: 300, child: EmptyView(message: 'No coins found. Pull to retry.'));
-      case LoadState.loaded:
-        return Column(
-          children: [
-            MaybeOfflineBadge(offline: m.offline, savedAt: m.savedAt),
-            ...[for (var i = 0; i < m.coins.length; i++) CoinTile(coin: m.coins[i], rank: i + 1)],
-            const SizedBox(height: 16),
-          ],
-        );
-    }
   }
 }

@@ -188,3 +188,35 @@ def test_coin_list_does_not_hit_network():
         res = client.get("/api/research/coins/")
     assert res.status_code == 200
     mock_sync.assert_not_called()
+
+
+@pytest.mark.django_db
+def test_pagination_envelope_and_page_size_cap():
+    for i in range(5):
+        Coin.objects.create(symbol=f"C{i}", name=f"Coin {i}", market_cap_usd=Decimal(str(100 + i)))
+    client = APIClient()  # public
+
+    res = client.get("/api/research/coins/?page_size=2")
+    assert res.status_code == 200
+    body = res.data
+    assert body["count"] == 5
+    assert body["total_pages"] == 3
+    assert body["page"] == 1
+    assert body["page_size"] == 2
+    assert len(body["results"]) == 2
+    assert body["next"] is not None
+    assert body["previous"] is None
+
+    res = client.get("/api/research/coins/?page=3&page_size=2")
+    assert res.status_code == 200
+    assert res.data["page"] == 3
+    assert len(res.data["results"]) == 1
+    assert res.data["next"] is None
+
+    # Cap enforced: ask 500, get max 100
+    res = client.get("/api/research/coins/?page_size=500")
+    assert res.status_code == 200
+    assert res.data["page_size"] == 100
+
+    # Out-of-range page stays a 404 (app treats it as end-of-list)
+    assert client.get("/api/research/coins/?page=99").status_code == 404

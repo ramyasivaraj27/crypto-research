@@ -5,6 +5,7 @@ import '../core/api_client.dart';
 import '../core/cache_store.dart';
 import '../providers/market_provider.dart';
 import '../widgets/coin_tile.dart';
+import '../widgets/pagination.dart';
 import '../widgets/primitives.dart';
 import '../widgets/state_views.dart';
 
@@ -75,11 +76,18 @@ class _SearchBodyState extends State<_SearchBody> {
       case LoadState.loaded:
         return AppRefreshIndicator(
           onRefresh: () => m.refresh(live: false),
-          child: ListView(
-            children: [
-              MaybeOfflineBadge(offline: m.offline, savedAt: m.savedAt),
-              ...[for (var i = 0; i < m.coins.length; i++) CoinTile(coin: m.coins[i], rank: i + 1)],
-              const SizedBox(height: 16),
+          child: PagedListView(
+            onLoadMore: m.loadMore,
+            itemCount: m.coins.length,
+            itemBuilder: (_, i) => CoinTile(coin: m.coins[i], rank: i + 1),
+            prefix: [MaybeOfflineBadge(offline: m.offline, savedAt: m.savedAt)],
+            suffix: [
+              LoadMoreFooter(
+                hasNext: m.hasNext,
+                loadingMore: m.loadingMore,
+                pageError: m.pageError,
+                onRetry: m.loadMore,
+              ),
             ],
           ),
         );
