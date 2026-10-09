@@ -1,16 +1,18 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 
-import '../models/market.dart';
-import '../providers/market_provider.dart';
-import '../screens/coin_detail_screen.dart';
+import '../model/coin.dart';
+import '../model/load_state.dart';
+import '../model/market_state.dart';
+import '../provider/provider_utils.dart';
 import '../theme/app_theme.dart';
-import '../widgets/primitives.dart';
 import '../utils/format.dart';
+import '../view_model/market_view_model.dart';
 import '../widgets/coin_tile.dart';
 import '../widgets/market_overview_card.dart';
 import '../widgets/pagination.dart';
+import '../widgets/primitives.dart';
 import '../widgets/state_views.dart';
+import 'coin_detail_screen.dart';
 
 /// Home "Market" tab: header, trending cards, overview card, top coins.
 class CoinListScreen extends StatelessWidget {
@@ -18,72 +20,71 @@ class CoinListScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final s = context.marketState;
+    final vm = context.marketViewModel;
     return Scaffold(
       body: SafeArea(
-        child: Consumer<MarketProvider>(
-          builder: (_, m, __) => AppRefreshIndicator(
-            onRefresh: () => m.refresh(live: true),
-            child: _scroll(m),
-          ),
+        child: AppRefreshIndicator(
+          onRefresh: () => vm.refresh(live: true),
+          child: _scroll(s, vm),
         ),
       ),
     );
   }
 
-  Widget _scroll(MarketProvider m) {
-    if (m.state == LoadState.loading || m.state == LoadState.idle) {
+  Widget _scroll(MarketState s, MarketViewModel vm) {
+    // Stale-while-revalidate: when rows are already loaded, a refresh keeps
+    // rendering them instead of swapping in a skeleton, so an in-flight
+    // interaction is never left pointing at an unmounted subtree.
+    if ((s.status == LoadState.loading || s.status == LoadState.idle) && s.coins.isEmpty) {
       return const LoadingView();
     }
-    if (m.state == LoadState.error) {
-      return ErrorView(message: m.error, onRetry: () => m.refresh(live: true));
+    if (s.status == LoadState.error && s.coins.isEmpty) {
+      return ErrorView(message: s.error, onRetry: () => vm.refresh(live: true));
     }
-    if (m.state == LoadState.empty && m.coins.isEmpty) {
+    if (s.status == LoadState.empty && s.coins.isEmpty) {
       return const EmptyView(message: 'No coins found. Pull to retry.');
     }
     return PagedListView(
-      onLoadMore: m.loadMore,
-      itemCount: m.coins.length,
-      itemBuilder: (_, i) => CoinTile(coin: m.coins[i], rank: i + 1),
+      onLoadMore: vm.loadMore,
+      itemCount: s.coins.length,
+      itemBuilder: (_, i) => CoinTile(coin: s.coins[i], rank: i + 1),
       prefix: [
-        _header(m),
+        _header(s),
+        if (s.status == LoadState.loading && s.coins.isNotEmpty)
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16),
+            child: LinearProgressIndicator(minHeight: 2),
+          ),
         const SectionTitle(text: 'Trending Coins', top: 4),
-        _trending(m),
+        _trending(s),
         const SizedBox(height: 8),
         const MarketOverviewCard(),
         Row(
           children: [
             const Expanded(child: SectionTitle(text: 'Top Coins')),
-            PopupMenuButton<String>(
-              icon: const Icon(Icons.sort, color: AppColors.muted),
-              onSelected: m.setOrdering,
-              itemBuilder: (_) => const [
-                PopupMenuItem(value: '-market_cap_usd', child: Text('Market cap ↓')),
-                PopupMenuItem(value: '-current_price_usd', child: Text('Price ↓')),
-                PopupMenuItem(value: '-price_change_24h_pct', child: Text('Top gainers')),
-                PopupMenuItem(value: 'symbol', child: Text('A–Z')),
-              ],
-            ),
             Padding(
               padding: const EdgeInsets.only(right: 16),
               child: FilterChip(
-                  label: const Text('Gainers'), selected: m.gainersOnly, onSelected: m.setGainers),
+                  label: const Text('Gainers'), selected: s.gainersOnly, onSelected: vm.setGainers),
             ),
           ],
         ),
-        MaybeOfflineBadge(offline: m.offline, savedAt: m.savedAt),
+        _sortStrip(s, vm),
+        MaybeOfflineBadge(offline: s.offline, savedAt: s.savedAt),
       ],
       suffix: [
         LoadMoreFooter(
-          hasNext: m.hasNext,
-          loadingMore: m.loadingMore,
-          pageError: m.pageError,
-          onRetry: m.loadMore,
+          hasNext: s.hasNext,
+          loadingMore: s.loadingMore,
+          pageError: s.pageError,
+          onRetry: vm.loadMore,
         ),
       ],
     );
   }
 
-  Widget _header(MarketProvider m) {
+  Widget _header(MarketState s) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
       child: Row(
@@ -93,7 +94,7 @@ class CoinListScreen extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               const Text('Last update', style: TextStyle(color: AppColors.muted, fontSize: 12)),
-              Text(m.savedAt == null ? '—' : fmtTime(m.savedAt!),
+              Text(s.savedAt == null ? '—' : fmtTime(s.savedAt!),
                   style: const TextStyle(fontSize: 12)),
             ],
           ),
@@ -102,15 +103,47 @@ class CoinListScreen extends StatelessWidget {
     );
   }
 
-  Widget _trending(MarketProvider m) {
-    if (m.state == LoadState.loading || m.state == LoadState.idle) {
+  static const _sortOptions = [
+    ('-market_cap_usd', 'Market cap'),
+    ('-current_price_usd', 'Price'),
+    ('-price_change_24h_pct', 'Top gainers'),
+    ('symbol', 'A–Z'),
+  ];
+
+  /// Inline sort chips. Deliberately NOT a PopupMenuButton: the popup keeps an
+  /// overlay route holding a raw State reference to its anchor button, and any
+  /// rebuild that replaces the anchor (state swap, hot reload) throws
+  /// "widget has been unmounted" from PopupMenuButtonState. Chips hold no
+  /// cross-frame references, so this crash class cannot recur.
+  Widget _sortStrip(MarketState s, MarketViewModel vm) {
+    return SizedBox(
+      height: 40,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        itemCount: _sortOptions.length,
+        separatorBuilder: (_, __) => const SizedBox(width: 8),
+        itemBuilder: (_, i) {
+          final (value, label) = _sortOptions[i];
+          return ChoiceChip(
+            label: Text(label, style: const TextStyle(fontSize: 12)),
+            selected: s.ordering == value,
+            onSelected: (_) => vm.setOrdering(value),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _trending(MarketState s) {
+    if (s.status == LoadState.loading || s.status == LoadState.idle) {
       return const SizedBox(
         height: 120,
         child: Center(child: CircularProgressIndicator()),
       );
     }
-    if (m.coins.isEmpty) return const SizedBox.shrink();
-    final trending = [...m.coins]
+    if (s.coins.isEmpty) return const SizedBox.shrink();
+    final trending = [...s.coins]
       ..sort((a, b) => (b.change24h ?? -999).compareTo(a.change24h ?? -999));
     final top3 = trending.take(3).toList();
     return SizedBox(

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 
-import '../core/auth_store.dart';
+import '../provider/provider_utils.dart';
 import '../theme/app_theme.dart';
 import '../widgets/primitives.dart';
 
@@ -134,7 +133,7 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> _submit() async {
-    final auth = context.read<AuthStore>();
+    final auth = context.authViewModel;
     setState(() {
       _busy = true;
       _error = null;

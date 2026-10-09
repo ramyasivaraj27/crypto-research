@@ -1,7 +1,7 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 
-import '../models/market.dart';
+import '../model/price_point.dart';
 import '../theme/app_theme.dart';
 import '../utils/format.dart';
 

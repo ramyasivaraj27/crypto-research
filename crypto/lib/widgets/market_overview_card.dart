@@ -3,10 +3,10 @@ import 'package:provider/provider.dart';
 
 import '../core/api_client.dart';
 import '../core/cache_store.dart';
-import '../models/market.dart';
+import '../model/market_overview.dart';
 import '../theme/app_theme.dart';
 import '../utils/format.dart';
-import '../screens/market_stats_screen.dart';
+import '../views/market_stats_screen.dart';
 
 /// Compact global-stats card on the home tab; taps through to full stats.
 class MarketOverviewCard extends StatefulWidget {

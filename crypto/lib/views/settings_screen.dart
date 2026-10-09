@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../core/api_client.dart';
-import '../core/auth_store.dart';
 import '../core/cache_store.dart';
+import '../provider/provider_utils.dart';
 import '../theme/app_theme.dart';
 import '../widgets/primitives.dart';
 import 'login_screen.dart';
@@ -29,7 +29,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final auth = context.watch<AuthStore>();
+    final auth = context.authState;
     return Scaffold(
       body: SafeArea(
         child: ListView(
@@ -58,7 +58,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   _say(
                     res['synced'] == true
                         ? 'Live sync complete.'
-                        : 'Sync skipped (throttled) — showing stored data.',
+                        : 'Sync skipped (throttled) - showing stored data.',
                     ok: res['synced'] == true,
                   );
                 } catch (e) {
@@ -117,9 +117,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
             if (auth.isLoggedIn)
               _tile(
                 icon: Icons.person_outline,
-                title: 'Signed in as ${auth.user?['username'] ?? 'you'}',
+                title: 'Signed in as ${auth.username ?? 'you'}',
                 subtitle: 'Tap to log out',
-                onTap: () => auth.logout(),
+                onTap: () => context.authViewModel.logout(),
               )
             else
               _tile(

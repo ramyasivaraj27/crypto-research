@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../core/api_client.dart';
 import '../core/cache_store.dart';
-import '../models/market.dart';
+import '../model/market_overview.dart';
 import '../theme/app_theme.dart';
 import '../widgets/primitives.dart';
 import '../utils/format.dart';

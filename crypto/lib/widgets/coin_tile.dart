@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../models/market.dart';
-import '../providers/watchlist_provider.dart';
-import '../screens/coin_detail_screen.dart';
+import '../model/coin.dart';
+import '../model/watchlist_state.dart';
+import '../provider/provider_utils.dart';
 import '../theme/app_theme.dart';
-import 'primitives.dart';
 import '../utils/format.dart';
+import '../views/coin_detail_screen.dart';
+import 'primitives.dart';
 
 /// Rounded dark card row: icon, name, rank + symbol, price + change pill.
 class CoinTile extends StatelessWidget {
@@ -16,7 +17,7 @@ class CoinTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final starred = context.select<WatchlistProvider, bool>((w) => w.starredIds.contains(coin.id));
+    final starred = context.select<WatchlistState, bool>((s) => s.starredIds.contains(coin.id));
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
       child: Card(
@@ -58,7 +59,7 @@ class CoinTile extends StatelessWidget {
                   visualDensity: VisualDensity.compact,
                   icon: Icon(starred ? Icons.star : Icons.star_border,
                       color: starred ? Colors.amber : AppColors.muted),
-                  onPressed: () => context.read<WatchlistProvider>().toggle(coin.id),
+                  onPressed: () => context.watchlistViewModel.toggle(coin.id),
                 ),
               ],
             ),

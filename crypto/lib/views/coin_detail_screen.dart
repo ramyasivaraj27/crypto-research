@@ -3,8 +3,11 @@ import 'package:provider/provider.dart';
 
 import '../core/api_client.dart';
 import '../core/cache_store.dart';
-import '../models/market.dart';
-import '../providers/watchlist_provider.dart';
+import '../mixins/market_actions_mixin.dart';
+import '../mixins/state_mixin.dart';
+import '../model/coin.dart';
+import '../model/price_point.dart';
+import '../model/watchlist_state.dart';
 import '../theme/app_theme.dart';
 import '../widgets/primitives.dart';
 import '../utils/format.dart';
@@ -23,7 +26,8 @@ class CoinDetailScreen extends StatefulWidget {
 
 const _ranges = <String, int>{'24H': 1, '1W': 7, '1M': 30, '6M': 90, '1Y': 90, 'MAX': 90};
 
-class _CoinDetailScreenState extends State<CoinDetailScreen> {
+class _CoinDetailScreenState extends State<CoinDetailScreen>
+    with StateMixin<CoinDetailScreen>, MarketActionsMixin<CoinDetailScreen> {
   String range = '1W';
   List<PricePoint> points = [];
   bool loading = true;
@@ -64,7 +68,7 @@ class _CoinDetailScreenState extends State<CoinDetailScreen> {
   @override
   Widget build(BuildContext context) {
     final c = widget.coin;
-    final starred = context.select<WatchlistProvider, bool>((w) => w.starredIds.contains(c.id));
+    final starred = context.select<WatchlistState, bool>((s) => s.starredIds.contains(c.id));
     return Scaffold(
       body: SafeArea(
         child: AppRefreshIndicator(
@@ -98,11 +102,17 @@ class _CoinDetailScreenState extends State<CoinDetailScreen> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             IconButton(icon: const Icon(Icons.arrow_back_ios_new), onPressed: () => Navigator.of(context).pop()),
-            IconButton(
-              icon: Icon(starred ? Icons.star : Icons.star_border,
-                  color: starred ? Colors.amber : Colors.white),
-              onPressed: () => context.read<WatchlistProvider>().toggle(widget.coin.id),
-            ),
+            isStarLoading(widget.coin.id)
+                ? const Padding(
+                    padding: EdgeInsets.all(12),
+                    child: SizedBox(
+                        width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2)),
+                  )
+                : IconButton(
+                    icon: Icon(starred ? Icons.star : Icons.star_border,
+                        color: starred ? Colors.amber : Colors.white),
+                    onPressed: () => toggleStar(widget.coin.id),
+                  ),
           ],
         ),
       );
